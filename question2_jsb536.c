@@ -77,15 +77,17 @@ int main(int argc, char *argv[])
 	int* indices;
 	indices = (int*)calloc(gridArea, sizeof(int));
 
-	for (i = 0; i < N; i++)
+	// 0.0001s
+	for (i = 0; i < N; ++i)
 	{
 		struct pointData* currentPoint = &(data[i]);
 		int gridX = (int)(currentPoint->x * cellSizeReciprocal);
 		int gridY = (int)(currentPoint->y * cellSizeReciprocal);
 		int index = (gridY * gridSize) + gridX;
-		(indices[index])++;
+		++(indices[index]);
 	}
 
+	// 0.0005s
 	#pragma omp parallel for shared(grid, indices) private(i) schedule(static)
 	for (i = 0; i < (gridArea); i++)
 	{
@@ -93,20 +95,22 @@ int main(int argc, char *argv[])
 		indices[i] = 0;
 	}
 
-	for (i = 0; i < N; i++)
+	// 0.0002s
+	for (i = 0; i < N; ++i)
 	{
 		struct pointData* currentPoint = &(data[i]);
 		int gridX = (int)(currentPoint->x * cellSizeReciprocal);
 		int gridY = (int)(currentPoint->y * cellSizeReciprocal);
 		int index = (gridY * gridSize) + gridX;
 		grid[index][indices[index]] = currentPoint;
-		(indices[index])++;
+		++(indices[index]);
 	}
 
+	// 0.0065s
 	int edgeIndex = gridSize - 1;
 
 	#pragma omp parallel for shared(data, epsilonSquared, grid, gridSize, cellSize, edgeIndex) private(i, j) schedule(static) reduction(+:count)
-	for (i = 0; i < gridArea; i++)
+	for (i = 0; i < gridArea; ++i)
 	{
 		struct pointData** currentGridCell = grid[i];
 		int gridX = i % gridSize;
@@ -116,7 +120,7 @@ int main(int argc, char *argv[])
 		int left = gridX != 0;
 		int right = gridX != edgeIndex;
 		int bottom = gridY != edgeIndex;
-		for (j = 0; j < indices[i]; j++)
+		for (j = 0; j < indices[i]; ++j)
 		{
 			struct pointData* currentPoint = currentGridCell[j];
 			if (top)
@@ -125,7 +129,9 @@ int main(int argc, char *argv[])
 				{
 					checkPoints(currentPoint, epsilonSquared, grid[i - (gridSize + 1)], indices[i - (gridSize + 1)], &count);
 				}
+
 				checkPoints(currentPoint, epsilonSquared, grid[i - gridSize], indices[i - gridSize], &count);
+
 				if (right)
 				{
 					checkPoints(currentPoint, epsilonSquared, grid[i - (gridSize - 1)], indices[i - (gridSize - 1)], &count);
@@ -150,7 +156,9 @@ int main(int argc, char *argv[])
 				{
 					checkPoints(currentPoint, epsilonSquared, grid[i + (gridSize - 1)], indices[i + (gridSize - 1)], &count);
 				}
+
 				checkPoints(currentPoint, epsilonSquared, grid[i + gridSize], indices[i + gridSize], &count);
+
 				if (right)
 				{
 					checkPoints(currentPoint, epsilonSquared, grid[i + (gridSize + 1)], indices[i + (gridSize + 1)], &count);
@@ -159,7 +167,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	for (i = 0; i < gridArea; i++)
+	for (i = 0; i < gridArea; ++i)
 	{
 		free(grid[i]);
 	}
@@ -195,12 +203,12 @@ void generateDataset(struct pointData * data)
 void checkPoints(struct pointData* currentPoint, double epsilonSquared, struct pointData** gridSquare, int numPoints, int* count)
 {
 	struct pointData* pointToBeChecked;
-	for (int i = 0; i < numPoints; i++)
+	for (int i = 0; i < numPoints; ++i)
 	{
 		pointToBeChecked = gridSquare[i];
 		if ((currentPoint->x - pointToBeChecked->x) * (currentPoint->x - pointToBeChecked->x) + (currentPoint->y - pointToBeChecked->y) * (currentPoint->y - pointToBeChecked->y) <= epsilonSquared)
 		{
-			(*count)++;
+			++(*count);
 		}
 	}
 }
