@@ -1,7 +1,7 @@
 //compilation instructions/examples:
-//gcc -fopenmp point_epsilon_starter.c -o point_epsilon_starter
+//gcc -fopenmp brute_force_count.c -o brute_force_count
 //sometimes you need to link against the math library with -lm:
-//gcc -fopenmp point_epsilon_starter.c -lm -o point_epsilon_starter
+//gcc -fopenmp brute_force_count.c -lm -o brute_force_count
 
 //math library needed for the square root
 
